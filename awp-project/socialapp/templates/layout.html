@@ -1,5 +1,8 @@
+{% load staticfiles %}
 <html>
   <head>
+  <link rel="stylesheet" href="{% static "my_style.css" %} " />
+
     <title> {% block title %} {% endblock %} </title>
   </head>
   <body>

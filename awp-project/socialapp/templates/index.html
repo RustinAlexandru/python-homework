@@ -2,25 +2,13 @@
 {% block title %}
  My Social network
 {% endblock %}
+
 {% block content %}
   <h2>News feed</h2>
-
+  {% load myfilters %}
   <form method="post">
     {% csrf_token %}
-    <!-- {{ form.as_p }} -->
-    {{ form.non_field_errors }}
-    <div class="fieldWrapper">
-    {{ form.text.errors }}
-    <label for="{{ form.subject.id_for_label }}"> Enter your post here:</label>
-    {{ form.text}}
-    </div>
-    <div class="fieldWrapper">
-      <!-- nu merge cu paragraph, dar merge cu h2 ?!?!  -->
-    <h1 style="color:red"> {{ form.author.errors }} </h1>
-    <label for="{{ form.message.id_for_label }}">Author</label>
-    {{ form.author }}
-    </div>
-
+    {{ form.as_p }}
     <input type="submit" value="Post">
   </form>
 
