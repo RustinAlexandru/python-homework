@@ -1,0 +1,39 @@
+{% extends 'layout.html' %}
+{% block title %}
+ My Social network
+{% endblock %}
+{% block content %}
+  <h2>News feed</h2>
+
+  <form method="post">
+    {% csrf_token %}
+    <!-- {{ form.as_p }} -->
+    {{ form.non_field_errors }}
+    <div class="fieldWrapper">
+    {{ form.text.errors }}
+    <label for="{{ form.subject.id_for_label }}"> Enter your post here:</label>
+    {{ form.text}}
+    </div>
+    <div class="fieldWrapper">
+      <!-- nu merge cu paragraph, dar merge cu h2 ?!?!  -->
+    <h1 style="color:red"> {{ form.author.errors }} </h1>
+    <label for="{{ form.message.id_for_label }}">Author</label>
+    {{ form.author }}
+    </div>
+
+    <input type="submit" value="Post">
+  </form>
+
+
+  {% for post in posts %}
+    <div class="user-post">
+      <hr>
+      <p>{{ post.author }}</p>
+      <p>{{ post.date_added }}</p>
+      <p>
+        {{ post.text | slice:":15" }} ...
+        <a href="{% url 'post_details' post.pk %}">See more</a>
+      </p>
+    </div>
+  {% endfor %}
+{% endblock %}
