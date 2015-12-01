@@ -50,17 +50,36 @@ def ex4():
              'diamonds',
              'hearts',
              'spades', ]
-    randomCard = random.choice(cards)
-    randomSuit = random.choice(suits)
-    randcard = randomCard + ' ' + randomSuit
-
+    random_card = random.choice(cards)
+    random_suit = random.choice(suits)
+    rand_card = random_card + ' ' + random_suit
+    return rand_card
 
 # ex5
-# def randHand():
-#    randhand = random.sample()
+
+
+def ex5():
+    rand_hand = []
+    while len(rand_hand) != 5:
+        rand_card = ex4()
+        if rand_card not in rand_hand:
+            rand_hand.append(rand_card)
+    print rand_hand
 
 
 # ex6
+def ex6():
+    # v1
+    # extragere = []
+    # while len(extragere) != 6:
+    #     numar = random.randint(1,50)
+    #     if numar not in extragere:
+    #         extragere.append(numar)
+    # print extragere
+
+    # v2
+    extragere = random.sample(range(1, 50), 6)
+    print extragere
 
 
 def ex7():
@@ -81,7 +100,7 @@ def ex8(number):
         print 'false'
 
 
-# ex9 1 ARG OR NONE ?????
+# ex9
 def ex9(arg='default'):
     now = datetime.now()
     if arg == 'america' or arg == 'USA' or arg == 'US':
@@ -95,6 +114,8 @@ def main():
     # ex2()
     # ex3()
     # ex4()
+    # ex5()
+    # ex6()
     # ex7()
     # ex8('noul meu numar este 0218822555, este scris in clar')
     # ex8(testNumber('noul meu numar este 0218822sss, dar este codificat')
