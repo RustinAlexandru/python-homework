@@ -120,28 +120,39 @@ def sum(*args):
 # sum(1,2,3)
 
 # ex14
-# def decipher(list):
 
-# decipher('z')
+
+def decipher(list):
+    result = ""
+    for letter in list:
+        if letter >= 'b' and letter <= 'z':
+            result += chr(ord(letter) - 1)
+        elif letter == 'a':
+            result += 'z'
+        else:
+            result += letter
+
+    return result
 
 
 def main():
-    # ex1()
-    # ex2()
-    # ex3()
-    # ex4()
-    # ex5()
-    # ex6()
-    # print factorial(5)
-    # ex8()
-    # is_palindrome('radar')
-    # is_palindrome('ana')
-    # is_palindrome('costel')
-    # print(equalLists([1,2,3],[4,2,6]))
-    # find_longest_word(["gigi",'ana',"gegegegegegegege"])
-    # print filter_long_words(['gige', 'mere', 'perere', 'apa'], 4)
-    # sum(1, 2, 3)
-
+        # ex1()
+        # ex2()
+        # ex3()
+        # ex4()
+        # ex5()
+        # ex6()
+        # print factorial(5)
+        # ex8()
+        # is_palindrome('radar')
+        # is_palindrome('ana')
+        # is_palindrome('costel')
+        # print(equalLists([1,2,3],[4,2,6]))
+        # find_longest_word(["gigi",'ana',"gegegegegegegege"])
+        # print filter_long_words(['gige', 'mere', 'perere', 'apa'], 4)
+        # sum(1, 2, 3)
+        # print decipher("j mjlf cjh cvuut boe j dboopu mjf\nzpv puifs cspuifst
+        # dbo'u efoz")
 
 if __name__ == '__main__':
     main()
