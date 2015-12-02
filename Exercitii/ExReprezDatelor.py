@@ -1,5 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
+
+import os, sys
 import csv
 import sys
 import xlrd
@@ -14,19 +16,15 @@ from unidecode import unidecode
 import requests
 
 # ex1
+# does not parse everything correctly (valoarea de tipul 'zzzz.zzzz.zzz')
 
 
-def citeste_achizitii_xls(xls):
+def convert_from_xls_to_csv(xls_, csv_):
 
-    wb = xlrd.open_workbook(xls, formatting_info=True)
-    sheet = wb.sheet_by_index(0)
-    your_csv_file = open(
-        '/Users/alexandrurustin/Desktop/Python.anunturibun.csv', 'w')
-    wr = csv.writer(your_csv_file, delimiter=' ')
-
-    cell = sheet.cell(6, 10)  # gets a Cell object
-    cell.ctype = 1
-    print cell.value
+    workbook = xlrd.open_workbook(xls_, formatting_info=True)
+    sheet = workbook.sheet_by_index(0)
+    your_csv_file = open(csv_, 'w')
+    writer = csv.writer(your_csv_file, delimiter=' ')
 
     for rownum in range(1, sheet.nrows):
 
@@ -36,116 +34,130 @@ def citeste_achizitii_xls(xls):
         if isinstance(date, float) or isinstance(date, int):
             year, month, day, hour, minute, sec = xlrd.xldate_as_tuple(date, 0)
             py_date = "%02d/%02d/%04d" % (day, month, year)
-            wr.writerow(row[0:2] +
-                        [py_date] +
-                        row[3:])
+            writer.writerow(row[0:2] +
+                            [py_date] +
+                            row[3:])
         else:
-            wr.writerow(row)
+            writer.writerow(row)
 
     your_csv_file.close()
 
 
-def citeste_achizitii_csv(csv_):
+def read_csv_file(csv_):
     with open(csv_, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         # row[5] = Judet
         # row[10] = valoare
         # row[11] = moneda
-        dict = {}
+        dict_ = {}
         reader.next()
 
         for row in reader:
             judet = row[5]
             val = float(row[10].replace(',', ''))
-            if judet in dict:
-                dict[judet] += val
+            if judet in dict_:
+                dict_[judet] += val
             else:
-                dict[judet] = val
-        return dict
+                dict_[judet] = val
+        return dict_
 
 
-def scrie_csv():
-    with open('csvfile.csv', 'w') as writefile:
-        dict = citeste_achizitii_csv(
-            '/Users/alexandrurustin/Desktop/Python/anunturibun.csv')
+def write_to_csv_file(csv_):
+    with open(csv_, 'w') as writefile:
+        dict_ = read_csv_file(
+            '/Users/alexandrurustin/Desktop/Python/python-homework/anunturibun.csv')
         writer = csv.writer(writefile)
         writer.writerow(['Judet', 'Valorea estimata'])
-        for key in dict:
+        for key in dict_:
             writer.writerow([key, str(dict[key])])
 
 
-def scrie_json():
-    with open('/Users/alexandrurustin/Desktop/Python/anunturibun.csv', 'r') as csvfile:
+def write_to_json_file(csv_, json_):
+    with open(csv_, 'r') as csvfile:
         reader = csv.reader(csvfile, delimiter=',')
         reader.next()
-        dict = {}
+        dict_ = {}
 
         # row[2] = data publicare
         # row[10] = valoare
         # row[11] = moneda
         for row in reader:
             month = datetime.strptime(row[2], "%d.%m.%Y %M:%S").month
-            val = float(row[10].replace(',', ''))
+            value = float(row[10].replace(',', ''))
             if row[11] != 'RON':
-                val_convertita = convertor_valutar(val, row[11])
+                converted_value = currency_convertor(value, row[11], 'http://www.bnr.ro/nbrfxrates.xml')
             else:
                 if month in dict:
-                    dict[month] += val
+                    dict_[month] += value
                 else:
-                    dict[month] = val
+                    dict_[month] = value
 
-    with open('anunturi.json', 'w') as writefile:
-        json.dump(dict, writefile, indent=4)
+    with open(json_, 'w') as writefile:
+        json.dump(dict_, writefile, indent=4)
 
 
-def convertor_valutar(suma_convert, moneda):
-    soup = BeautifulSoup(
-        open('/Users/alexandrurustin/Desktop/Python/nbrfxrates.xml'),
-        'xml')
-    currency = soup.find('Rate', {'currency': moneda.upper()})
+def currency_convertor(sum_to_convert, currency_, url):
+    request = requests.get(url)
+    data = request.content
+    soup = BeautifulSoup(data, 'xml')
+
+    currency = soup.find('Rate', {'currency': currency_.upper()})
     currency_value = float(currency.string)
-    return suma_convert / currency_value
+    return sum_to_convert / currency_value
 
-
-def dictionar_populatie(url):
+# printing doesn't work, problems with unicode/encoding
+def population_dictionary(url):
     r = requests.get(url)
     data = r.content
     soup = BeautifulSoup(data, 'html.parser')
 
     table = soup.find('table')
     rows = table.findAll('tr')
-    dict = {}
+    dict_ = {}
 
     for row in rows[1:]:
         column = row.findAll('td')
-        # cells[9] populatie pe ultimul an
-        # cells[1] judetul
-        populatie = str(column[9].find(text=True, recursive=False))
-        judet = unidecode(column[1].text)
-        if judet not in dict:
-            if populatie:
-                dict[judet] = populatie
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint(dict)
-    return dict
+        # column[9] populatie pe ultimul an
+        # column[1] judetul / <a> judet
+        population = str(column[9].find(text=True, recursive=False)).replace('.','')
+        if population != 'None':
+            population = float(population)
+        if row.a != None:
+            county = row.a.string
+            if county == 'Municipiul București':
+                county = county.split('')[1]
+        if county not in dict_:
+                dict_[county] = population
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(dict)
+    # print str(dict)
+    return dict_
 
-def valoare_contract_cap_locuitor():
-    dictionar_populatie = dictionar_populatie()
-    dictionar_valori_contracte = citeste_achizitii_csv('anunturibun.csv')
-    pp = pprint.PrettyPrinter(indent=4)
-    pp.pprint((dictionar_populatie))
-    for judet in dictionar_populatie.keys()
+# doesn't work, problems with unicode/encoding
+def contract_value_per_head_of_population():
+    dictionary_population = population_dictionary('https://ro.wikipedia.org/wiki/Lista_județelor_României_după_populație')
+    dictionary_contracts_value = read_csv_file('/Users/alexandrurustin/Desktop/Python/python-homework/anunturibun.csv')
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(dictionary_contracts_value)
+    # pp.pprint(dictionary_population)
+    # dict_ = {}
+    # for county in dictionary_population.keys():
+    #     dict_[county] = dictionary_population[county] / dictionary_contracts_value[county]
+    # pp = pprint.PrettyPrinter(indent=4)
+    # pp.pprint(dict_)
+
+
 
 def main():
-
-    # citeste_achizitii_xls('Anunturi-participare-2015-S1.xls')
-    # citeste_achizitii_csv('anunturibun.csv')
-    # scrie_csv()
-    scrie_json()
-    convertor_valutar(1234, 'eur')
-    dictionar_populatie(
-        'https://ro.wikipedia.org/wiki/Lista_județelor_României_după_populație')
-    valoare_contract_cap_locuitor()
+    # convert_from_xls_to_csv(
+    # '/Users/alexandrurustin/Desktop/Python/python-homework/Anunturi-participare-2015-S1.xls', '/Users/alexandrurustin/Desktop/Python/python-homework/MyAnunturi.csv')
+    # read_csv_file('/Users/alexandrurustin/Desktop/Python/python-homework/anunturibun.csv')
+    # write_to_csv_file('/Users/alexandrurustin/Desktop/Python/python-homework/csvfile.csv')
+    # write_to_json_file('/Users/alexandrurustin/Desktop/Python/python-homework/anunturibun.csv', '/Users/alexandrurustin/Desktop/Python/python-homework/anunturi.json')
+    # print currency_convertor(1234, 'eur', 'http://www.bnr.ro/nbrfxrates.xml')
+    # population_dictionary(
+    #      'https://ro.wikipedia.org/wiki/Lista_județelor_României_după_populație')
+    # contract_value_per_head_of_population()
 
 if __name__ == '__main__':
     main()
